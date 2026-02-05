@@ -10,7 +10,8 @@ export interface ClientToServerEvents {
 // 2. Events the SERVER sends to the CLIENT
 export interface ServerToClientEvents {
   session: (data: { gamerId: string; }) => void;
-  game_start: (data: { gameId: string; opponentName: string; symbol: 'X' | 'O' }) => void;
+  queue_joined: (data: {gameId:string})=>void;
+  game_start: (data: { gameId: string; }) => void;
   game_update: (data: { board: string[]; currentTurn: string }) => void;
   game_over: (data: { winnerId: string | null; winningLine: number[] | null }) => void;
   error: (data: { message: string }) => void;
