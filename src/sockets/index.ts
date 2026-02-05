@@ -1,5 +1,6 @@
 import type { TypedServer, TypedSocket } from "../types/socket.js";
-import { findUserById, createNewUserInDB } from "../db/fucntions.js";
+import { findUserById, createNewUserInDB } from "../db/functions.js";
+import { events } from "./event.js";
 
 export const initializeSockets = (io: TypedServer) => {
   
@@ -39,7 +40,7 @@ export const initializeSockets = (io: TypedServer) => {
       gamerId: socket.data.gamerId,
     });
 
-    socket.join(socket.data.gamerId);
+    events(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.data.gamerId}`);
