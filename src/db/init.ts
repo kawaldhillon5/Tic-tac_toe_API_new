@@ -11,19 +11,16 @@ const initDb = () => {
     `);
 
     // 2. Games Table
-    // We will JSON.stringify() it.
     db.run(`
       CREATE TABLE IF NOT EXISTS games (
-        id TEXT PRIMARY KEY,
-        player_x_id TEXT,
-        player_o_id TEXT,
-        board TEXT, 
-        status TEXT,
+        id Text PRIMARY KEY ,
+        board TEXT NOT NULL,
+        player1 TEXT,
+        player2 TEXT,
         current_turn TEXT,
-        winner_id TEXT,
-        created_at INTEGER,
-        FOREIGN KEY(player_x_id) REFERENCES users(id),
-        FOREIGN KEY(player_o_id) REFERENCES users(id)
+        status TEXT NOT NULL DEFAULT 'waiting',
+        winner TEXT,
+        created_at INTEGER
       )
     `);
 

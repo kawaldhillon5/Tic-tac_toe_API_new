@@ -1,12 +1,8 @@
 import db from "./index.js";
 import { GetUsername } from "../utils/idGenerator.js";
-
-// Define what a DB row looks like
-export interface UserRow {
-  id: string;
-  username: string;
-  created_at: number;
-}
+import type { UserRow } from "../types/db.js";
+import type { Board, Player } from "../types/game.js";
+import { v4 as uuidv4 } from 'uuid';
 
 // 1. Find a user by ID
 export const findUserById = (id: string): Promise<UserRow | null> => {
@@ -25,25 +21,51 @@ export const findUserById = (id: string): Promise<UserRow | null> => {
 export const createNewUserInDB = (): Promise<UserRow> => {
   return new Promise((resolve, reject) => {
     const newId = GetUsername();
-    // Currently using ID as username, but flexible for future
-    const newUsername = newId; 
     const now = Date.now();
 
     db.run(
-      "INSERT INTO users (id, username, created_at) VALUES (?, ?, ?)",
-      [newId, newUsername, now],
-      function (err) {
+      "INSERT INTO users (id, created_at) VALUES (?, ?)",
+      [newId, now],
+      (err) => {
         if (err) {
           console.error("DB Error createNewUserInDB:", err);
           return reject(err);
         }
-        // Return the full user object so the socket can use it immediately
         resolve({
           id: newId,
-          username: newUsername,
           created_at: now
         });
       }
     );
+  });
+};
+
+export const createNewGame = (p1: Player, p2: Player) : Promise<string> =>{
+  return new Promise((resolve, reject) =>{
+    const id  = uuidv4();
+    const board: Board = [
+        [null, null, null],
+        [null, null, null],
+        [null, null, null]
+    ];
+
+    db.run(
+      "INSERT INTO games (id, board, player1, player2, current_turn ) VALUES (?, ?, ?, ?, ? )",
+      [
+        id,
+        JSON.stringify(board),
+        JSON.stringify(p1),
+        JSON.stringify(p2),
+        p1.gamerId,
+      ],(err)=>{
+        if(err){
+          console.error("DB Error createNewUserInDB:", err);
+          return reject(err);
+        }
+        resolve(
+          id.toString()
+        )
+      }
+    )
   });
 };
