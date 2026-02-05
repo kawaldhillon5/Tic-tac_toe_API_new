@@ -1,6 +1,6 @@
 
 export type Player = {
-    username: string, 
+    gamerId: string, 
     mark: 'X' | 'O'
 };
 
@@ -25,13 +25,11 @@ export interface MoveResult {
     error: string | null;
 }
 
-export interface GameRow {
-    id: string;             
-    board: Board; 
+export interface Match {
+    id: string;              
     player1: Player | null;
     player2: Player | null;
     current_turn: Player | null;
     status: 'waiting' | 'ongoing' | 'won' | 'draw';
-    winner: Player | null;
-    created_at: Date;
 }
+
