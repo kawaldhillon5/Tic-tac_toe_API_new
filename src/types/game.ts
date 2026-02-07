@@ -12,6 +12,7 @@ export interface GameStatus {
     winner: 'X' | 'O' | null;
     gameOver: boolean;
     gameStatus: 'ongoing' | 'won' | 'draw'
+    winningArray: {row:number, col: number}[] | null
 }
 
 export interface ValidateMoveResult {
@@ -23,13 +24,5 @@ export interface MoveResult {
     board: Board;
     success: boolean;
     error: string | null;
-}
-
-export interface Match {
-    id: string;              
-    player1: Player | null;
-    player2: Player | null;
-    current_turn: Player | null;
-    status: 'waiting' | 'ongoing' | 'won' | 'draw';
 }
 
