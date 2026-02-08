@@ -111,7 +111,7 @@ export const updateGame = (gameRow: GameRow):  Promise<GameRow> =>{
         console.error("DB Error upateGame:", err);
         return reject(err);
       }
-      if( !this.lastID){
+      if( !this.changes){
         return reject(new Error("Could Not Find Game to Update"));
       }
       resolve(gameRow);
