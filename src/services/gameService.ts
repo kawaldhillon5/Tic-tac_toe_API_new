@@ -17,7 +17,7 @@ export const checkWinner = (board: Board): GameStatus => {
         const cell2 = board[2]?.[i];
 
         if (cell0 && cell0 === cell1 && cell0 === cell2) {
-            return { winner: cell0, gameOver: true, gameStatus: 'won', winningArray: [{row:0, col:i},{row:1, col:i},{row:1, col:i}]};
+            return { winner: cell0, gameOver: true, gameStatus: 'won', winningArray: [{row:0, col:i},{row:1, col:i},{row:2, col:i}]};
         }
     }
 
