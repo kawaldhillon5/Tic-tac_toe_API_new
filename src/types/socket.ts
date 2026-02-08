@@ -17,13 +17,13 @@ export interface ServerToClientEvents {
     gameId: string;
     board: Board;
     currentTurn: string | null;
-    mySymbol: 'X' | 'O';
-    opponent: Player | null; // Send full player object (gamerId + mark)
+    opponent: Player | null; 
     status: 'waiting' | 'ongoing' | 'won' | 'draw';
     winner: string | null;
+    winningArray: {row:number, col: number}[] | null
   }) => void;
   game_update: (data: { board: Board; currentTurn: string | null }) => void;
-  game_over: (data: { winnerId: string | null; winningArray: {row:number, col: number}[] | null }) => void;
+  game_over: (data: {board: Board, status: 'won' | 'draw', winnerId: string | null; winningArray: {row:number, col: number}[] | null }) => void;
   error: (data: { message: string }) => void;
 }
 
