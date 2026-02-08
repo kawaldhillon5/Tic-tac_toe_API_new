@@ -107,17 +107,14 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
 
             if(gameCheckResult.gameOver === false){
                 let newCurrentTurn = game.player1?.gamerId === data.player ? game.player2?.gamerId : game.player1?.gamerId;  
-                game.current_turn = newCurrentTurn == undefined ? null : newCurrentTurn; 
+                game.current_turn = newCurrentTurn == undefined ? null : newCurrentTurn;
+                io.to(game.id).emit("game_update",{board: game.board, currentTurn: game.current_turn });
             } else {
                 const winner = game.winner?.gamerId == undefined ? null :game.winner?.gamerId;
-                io.to(game.id).emit("game_over",{status: game.status == "won" ? "won" : "draw" ,winnerId: winner, winningArray: gameCheckResult.winningArray});
+                io.to(game.id).emit("game_over",{board: game.board ,status: game.status == "won" ? "won" : "draw" ,winnerId: winner, winningArray: gameCheckResult.winningArray});
             } 
-
-            const updatedGame = await updateGame(game);
-            io.to(updatedGame.id).emit("game_update",{board: updatedGame.board, currentTurn: updatedGame.current_turn })
-            
+            await updateGame(game);
             return
-
         } catch (err: any){
             console.log(err);
             socket.emit("error", { message: err.message || "Error Registering Move"});
