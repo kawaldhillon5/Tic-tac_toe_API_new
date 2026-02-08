@@ -6,6 +6,7 @@ import type { GameStatus, Player } from "../types/game.js";
 import type { TypedServer, TypedSocket } from "../types/socket.js"
 
 export const events = (io: TypedServer , socket: TypedSocket)=>{
+
     const joinQueue = async ()=>{
         try{
             if(matchQueue.length == 0 ){
@@ -27,8 +28,50 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             console.log(err);
             socket.emit("error", { message: err.message || "Error Joining Queue"});
         }
-        
     }
+
+    const joinGame = async (data: { gameId: string }) => {
+        const { gameId } = data;
+        const userId = socket.data.gamerId;
+
+        try {
+            const game = await getGamebyId(gameId);
+            if (!game) {
+                socket.emit("error", { message: "Game not found" });
+                return;
+            }
+
+            
+            const p1 = game.player1; 
+            const p2 = game.player2; 
+
+            const isP1 = p1?.gamerId === userId;
+            const isP2 = p2?.gamerId === userId;
+
+            if (!isP1 && !isP2) {
+                socket.emit("error", { message: "You are not a player in this game" });
+                return;
+            }
+
+            const opponent = isP1 ? p2 : p1;
+
+            socket.join(gameId);
+
+            socket.emit("game_state", {
+                gameId: game.id,
+                board: game.board,
+                currentTurn: game.current_turn,
+                opponent: opponent,
+                status: game.status,
+                winner: game.winner?.gamerId || null,
+                winningArray: checkWinner(game.board).winningArray
+            });
+
+        } catch (err) {
+            console.error(err);
+            socket.emit("error", { message: "Failed to sync game" });
+        }
+    };
 
     const handleMove = async (data: { gameId: string; row: number, col: number, player: string }) =>{
         try{
@@ -41,6 +84,11 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             if(game.current_turn != data.player) {
                 socket.emit("error", {message: "Not Your Turn!"});
                 return
+            }
+
+            if(game.status !== "ongoing"){
+                socket.emit("error", {message: "Game Over! Cannot Register Move"});
+                return;
             }
 
             const currentTurnPlayer = game.current_turn == game.player1?.gamerId ? game.player1 : game.player2; 
@@ -57,15 +105,12 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             game.status = gameCheckResult.gameStatus;
             game.winner = gameCheckResult.winner  === game.player1?.mark ?  game.player1 : gameCheckResult.winner  === game.player2?.mark ?  game.player2 : null;
 
-            game.winner = game.player1?.mark === gameCheckResult.winner ? game.player1 : game.player2;
-
             if(gameCheckResult.gameOver === false){
                 let newCurrentTurn = game.player1?.gamerId === data.player ? game.player2?.gamerId : game.player1?.gamerId;  
                 game.current_turn = newCurrentTurn == undefined ? null : newCurrentTurn; 
             } else {
                 const winner = game.winner?.gamerId == undefined ? null :game.winner?.gamerId;
-                io.to(game.id).emit("game_over",{winnerId: winner, winningArray: gameCheckResult.winningArray});
-                return;
+                io.to(game.id).emit("game_over",{status: game.status == "won" ? "won" : "draw" ,winnerId: winner, winningArray: gameCheckResult.winningArray});
             } 
 
             const updatedGame = await updateGame(game);
@@ -78,7 +123,11 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             socket.emit("error", { message: err.message || "Error Registering Move"});
         }
     }
+
+
     
+
     socket.on("join_queue", joinQueue);
+    socket.on("join_game", joinGame);
     socket.on("make_move", (data: { gameId: string; row: number, col: number, player: string }) => handleMove(data))
 }
