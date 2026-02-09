@@ -1,6 +1,8 @@
 import { createNewGame, getGamebyId, updateGame } from "../db/functions.js";
 import { checkWinner, makeMove } from "../services/gameService.js";
 import { matchQueue } from "../services/matchQueue.js";
+import { gameTimer } from "../services/TimerMap.js";
+import { deleteTurnTimer, startTurnTimer } from "../services/TimerService.js";
 import type { GameRow } from "../types/db.js";
 import type { GameStatus, Player } from "../types/game.js";
 import type { TypedServer, TypedSocket } from "../types/socket.js"
@@ -19,7 +21,8 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
                     const newGameId: string = await createNewGame(p1, p2);
                     opponentSocket.join(newGameId);
                     socket.join(newGameId);
-                    io.to(newGameId).emit("game_start", {gameId: newGameId});
+                    const deadline = startTurnTimer(newGameId,p2,io);
+                    io.to(newGameId).emit("game_start", {gameId: newGameId, turnDeadline: deadline});
                 } else {
                     matchQueue.push(socket);
                 }
@@ -57,6 +60,8 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
 
             socket.join(gameId);
 
+            const timerData = gameTimer.get(gameId);
+
             socket.emit("game_state", {
                 gameId: game.id,
                 board: game.board,
@@ -64,7 +69,8 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
                 opponent: opponent,
                 status: game.status,
                 winner: game.winner?.gamerId || null,
-                winningArray: checkWinner(game.board).winningArray
+                winningArray: checkWinner(game.board).winningArray,
+                turnDeadline: timerData ? timerData.timerEndTime : null,
             });
 
         } catch (err) {
@@ -108,8 +114,10 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             if(gameCheckResult.gameOver === false){
                 let newCurrentTurn = game.player1?.gamerId === data.player ? game.player2?.gamerId : game.player1?.gamerId;  
                 game.current_turn = newCurrentTurn == undefined ? null : newCurrentTurn;
-                io.to(game.id).emit("game_update",{board: game.board, currentTurn: game.current_turn });
+                const moveDeadline = startTurnTimer(game.id, currentTurnPlayer, io );
+                io.to(game.id).emit("game_update",{board: game.board, currentTurn: game.current_turn, turnDeadline: moveDeadline });
             } else {
+                deleteTurnTimer(game.id);
                 const winner = game.winner?.gamerId == undefined ? null :game.winner?.gamerId;
                 io.to(game.id).emit("game_over",{board: game.board ,status: game.status == "won" ? "won" : "draw" ,winnerId: winner, winningArray: gameCheckResult.winningArray});
             } 
