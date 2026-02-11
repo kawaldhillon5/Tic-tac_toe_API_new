@@ -26,3 +26,21 @@ export interface GameRow {
     winner: Player | null;
     created_at: Date;
 }
+
+export interface GameHistoryStringified {
+    id: string;
+    player1: string;       
+    player2: string;        
+    status: string;
+    winner: string | null;  
+    created_at: number;     
+}
+
+export interface GameHistoryRow {
+    id: string;
+    player1: Player;       
+    player2: Player;        
+    status:  'won' | 'draw';
+    winner: Player;  
+    created_at: number;
+}
