@@ -1,6 +1,6 @@
 import db from "./index.js";
 import { GetUsername } from "../utils/idGenerator.js";
-import type { GameRow, GameRowStringified, UserRow } from "../types/db.js";
+import type { GameHistoryStringified, GameRow, GameRowStringified, UserRow } from "../types/db.js";
 import type { Board, Player } from "../types/game.js";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -118,3 +118,15 @@ export const updateGame = (gameRow: GameRow):  Promise<GameRow> =>{
     });
   });
 };
+
+export const getGamesByUser = (gamerId: string) : Promise<GameHistoryStringified[]> =>{
+  return new Promise((resolve, reject) =>{
+    db.all("SELECT id, player1, player2, status, winner, created_at FROM games WHERE NOT status = 'waiting'  AND (player1 LIKE ? OR player2 LIKE ?) ORDER BY created_at DESC LIMIT 10 ;",[`%${gamerId}%`,`%${gamerId}%`],(err: any, rows : [])=>{
+      if(err){
+        console.error("DB Error getGamesByUser: ", err);
+        return reject(err);
+      }
+      resolve(rows);
+    });
+  });
+}
