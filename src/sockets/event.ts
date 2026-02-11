@@ -1,9 +1,9 @@
-import { createNewGame, getGamebyId, updateGame } from "../db/functions.js";
+import { createNewGame, getGamebyId, getGamesByUser, updateGame } from "../db/functions.js";
 import { checkWinner, makeMove } from "../services/gameService.js";
 import { matchQueue } from "../services/matchQueue.js";
 import { gameTimer } from "../services/TimerMap.js";
 import { deleteTurnTimer, startTurnTimer } from "../services/TimerService.js";
-import type { GameRow } from "../types/db.js";
+import type { GameHistoryRow, GameRow } from "../types/db.js";
 import type { GameStatus, Player } from "../types/game.js";
 import type { TypedServer, TypedSocket } from "../types/socket.js"
 
@@ -129,10 +129,30 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
         }
     }
 
+    const handleGetUserHistory = async (data :{gamerId : string}) =>{
+        if(!data.gamerId) socket.emit("error",{message:"GamerId not Valid"});
+        try{
+            const gamesStringified = await getGamesByUser(data.gamerId);
+            const games : GameHistoryRow[] = gamesStringified.map((game) : GameHistoryRow =>{
+                return {
+                    id:game.id,
+                    player1: JSON.parse(game.player1),
+                    player2: JSON.parse(game.player2),
+                    status: game.status,
+                    winner: game.winner ? JSON.parse(game.winner) : null,
+                    created_at: game.created_at
+                }
+            });
+            socket.emit("game_history",{games: games});
 
-    
+        }catch(err : any){
+            console.log(err);
+            socket.emit("error",{message:"Could Not Get Games History"})
+        }
+    }
 
     socket.on("join_queue", joinQueue);
     socket.on("join_game", joinGame);
+    socket.on("game_history", handleGetUserHistory);
     socket.on("make_move", (data: { gameId: string; row: number, col: number, player: string }) => handleMove(data))
 }
