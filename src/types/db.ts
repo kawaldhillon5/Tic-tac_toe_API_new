@@ -32,7 +32,7 @@ export interface GameHistoryStringified {
     player1: string;       
     player2: string;        
     status: string;
-    winner: string | null;  
+    winner: string;  
     created_at: number;     
 }
 
@@ -40,7 +40,13 @@ export interface GameHistoryRow {
     id: string;
     player1: Player;       
     player2: Player;        
-    status:  'won' | 'draw';
+    status:  string;
     winner: Player;  
     created_at: number;
+}
+
+export interface Scores {
+    myWins: number;
+    opponentWins: number;
+    draws: number;
 }

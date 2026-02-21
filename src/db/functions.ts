@@ -1,6 +1,6 @@
 import db from "./index.js";
 import { GetUsername } from "../utils/idGenerator.js";
-import type { GameHistoryStringified, GameRow, GameRowStringified, UserRow } from "../types/db.js";
+import type { GameHistoryStringified, GameRow, GameRowStringified, Scores, UserRow } from "../types/db.js";
 import type { Board, Player } from "../types/game.js";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -130,3 +130,42 @@ export const getGamesByUser = (gamerId: string) : Promise<GameHistoryStringified
     });
   });
 }
+
+export const getSessionScore = (myId: string, opponentId: string): Promise<Scores> => {
+  return new Promise((resolve, reject) => {
+   
+    const query = `
+      SELECT 
+        SUM(CASE WHEN winner LIKE ? THEN 1 ELSE 0 END) as myWins,
+        SUM(CASE WHEN winner LIKE ? THEN 1 ELSE 0 END) as opponentWins,
+        SUM(CASE WHEN status = 'draw' THEN 1 ELSE 0 END) as draws
+      FROM games 
+      WHERE status IN ('won', 'draw') 
+      AND (
+        (player1 LIKE ? AND player2 LIKE ?) 
+        OR 
+        (player1 LIKE ? AND player2 LIKE ?)
+      );
+    `;
+
+   
+    const params = [
+      `%${myId}%`, 
+      `%${opponentId}%`, 
+      `%${myId}%`, `%${opponentId}%`, 
+      `%${opponentId}%`, `%${myId}%`
+    ];
+
+    db.get(query, params, (err: any, row: any) => {
+      if (err) {
+        console.error("DB Error getSessionScore:", err);
+        return reject(err);
+      }
+      resolve({
+        myWins: row?.myWins || 0,
+        opponentWins: row?.opponentWins || 0,
+        draws: row?.draws || 0
+      });
+    });
+  });
+};

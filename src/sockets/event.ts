@@ -1,9 +1,9 @@
-import { createNewGame, getGamebyId, getGamesByUser, updateGame } from "../db/functions.js";
+import { createNewGame, getGamebyId, getGamesByUser, getSessionScore, updateGame } from "../db/functions.js";
 import { checkWinner, makeMove } from "../services/gameService.js";
 import { matchQueue } from "../services/matchQueue.js";
 import { gameTimer } from "../services/TimerMap.js";
 import { deleteTurnTimer, startTurnTimer } from "../services/TimerService.js";
-import type { GameHistoryRow, GameRow } from "../types/db.js";
+import type { GameHistoryRow, GameRow, Scores } from "../types/db.js";
 import type { GameStatus, Player } from "../types/game.js";
 import type { TypedServer, TypedSocket } from "../types/socket.js"
 
@@ -147,12 +147,29 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
 
         }catch(err : any){
             console.log(err);
-            socket.emit("error",{message:"Could Not Get Games History"})
+            socket.emit("error",{message:"Could Not Get Games History"});
+            
         }
+    }
+
+    const handleGetScore = async(data:{opponentId: string}) =>{
+        if(!data.opponentId) socket.emit("error",{message:"Invalid Opponent Id"});
+        try{
+            
+            const myId = socket.data.gamerId;
+            const scores: Scores = await getSessionScore(myId, data.opponentId);
+            socket.emit("score_data", scores);
+                
+            
+            }catch (err: any){
+                console.log(err);
+                socket.emit("error",{message:"Could Not Get Scores"});
+            }
     }
 
     socket.on("join_queue", joinQueue);
     socket.on("join_game", joinGame);
     socket.on("game_history", handleGetUserHistory);
+    socket.on("get_score", handleGetScore);    
     socket.on("make_move", (data: { gameId: string; row: number, col: number, player: string }) => handleMove(data))
 }

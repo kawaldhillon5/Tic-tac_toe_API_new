@@ -1,6 +1,6 @@
 import { Socket, Server } from "socket.io";
 import type { Board, Player } from "./game.js";
-import type { GameHistoryRow } from "./db.js";
+import type { GameHistoryRow, Scores } from "./db.js";
 
 // 1. Events the CLIENT sends to the SERVER
 export interface ClientToServerEvents {
@@ -9,6 +9,7 @@ export interface ClientToServerEvents {
   join_game : (data:{gameId: string}) => void,
   make_move: (data: { gameId: string; row: number, col: number, player: string }) => void;
   game_history: (data: {gamerId:string}) => void;
+  get_score : (data:{ opponentId: string}) =>void;
 }
 
 // 2. Events the SERVER sends to the CLIENT
@@ -29,6 +30,7 @@ export interface ServerToClientEvents {
   game_update: (data: { board: Board; currentTurn: string | null; turnDeadline: number |  null; }) => void;
   game_over: (data: {board: Board, status: 'won' | 'draw', winnerId: string | null; winningArray: {row:number, col: number}[] | null }) => void;
   timer_start : () => void;
+  score_data : (data: Scores) => void
   error: (data: { message: string }) => void;
 }
 
