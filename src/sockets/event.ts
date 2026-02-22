@@ -72,6 +72,7 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
                 winningArray: checkWinner(game.board).winningArray,
                 turnDeadline: timerData ? timerData.timerEndTime : null,
             });
+            io.to(gameId).emit("opponent_status",{isActive:true});
 
         } catch (err) {
             console.error(err);

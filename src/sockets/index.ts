@@ -42,7 +42,15 @@ export const initializeSockets = (io: TypedServer) => {
 
     events(io, socket);
 
+    socket.on("disconnecting", ()=>{
+      socket.rooms.forEach(room =>{
+        console.log("On Disconnecting, Socket.room: ", room);
+        io.to(room).emit("opponent_status",{isActive: false});
+      });
+    });
+
     socket.on("disconnect", () => {
+      
       console.log(`User disconnected: ${socket.data.gamerId}`);
     });
   });

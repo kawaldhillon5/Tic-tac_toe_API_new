@@ -31,6 +31,7 @@ export interface ServerToClientEvents {
   game_over: (data: {board: Board, status: 'won' | 'draw', winnerId: string | null; winningArray: {row:number, col: number}[] | null }) => void;
   timer_start : () => void;
   score_data : (data: Scores) => void
+  opponent_status : (data:{isActive: boolean}) => void
   error: (data: { message: string }) => void;
 }
 
