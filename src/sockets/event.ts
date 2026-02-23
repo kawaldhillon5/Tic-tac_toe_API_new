@@ -12,7 +12,8 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
     const joinQueue = async ()=>{
         try{
             if(matchQueue.length == 0 ){
-            matchQueue.push(socket);
+                socket.data.re_match_req = false;
+                matchQueue.push(socket);
             } else {
                 const opponentSocket = matchQueue.shift();
                 if(opponentSocket && opponentSocket.connected){
@@ -32,6 +33,15 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             console.log(err);
             socket.emit("error", { message: err.message || "Error Joining Queue"});
         }
+    }
+
+    const leaveQueue = ()=>{
+            const socketIndex  = matchQueue.findIndex((s)=>{
+                return s.data.gamerId == socket.data.gamerId;
+            });
+            if(socketIndex != -1){
+                matchQueue.splice(socketIndex,1);
+            }
     }
 
     const handleReMatch = async (data: {gameId: string, opponentId: string}, opponentSocket: any)=>{
@@ -212,6 +222,7 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
     }
 
     socket.on("join_queue", joinQueue);
+    socket.on("leave_queue", leaveQueue);
     socket.on("join_game", joinGame);
     socket.on("game_history", handleGetUserHistory);
     socket.on("get_score", handleGetScore);
