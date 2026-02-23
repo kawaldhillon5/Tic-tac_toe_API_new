@@ -13,6 +13,15 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
         try{
             if(matchQueue.length == 0 ){
                 socket.data.re_match_req = false;
+                const userGames = await getGamesByUser(socket.data.gamerId);
+                userGames.forEach((game)=>{
+                    if(game.status === "ongoing"){
+                        const timer  =  gameTimer.get(game.id);
+                        const deadline = timer ? timer.timerEndTime : null
+                        socket.emit("game_start", {gameId: game.id, turnDeadline: deadline});
+                        return;
+                    }
+                });
                 matchQueue.push(socket);
             } else {
                 const opponentSocket = matchQueue.shift();
@@ -25,6 +34,7 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
                     socket.join(newGameId);
                     const deadline = startTurnTimer(newGameId,p2,io);
                     io.to(newGameId).emit("game_start", {gameId: newGameId, turnDeadline: deadline});
+                    matchQueue.splice(0, matchQueue.length);
                 } else {
                     matchQueue.push(socket);
                 }
