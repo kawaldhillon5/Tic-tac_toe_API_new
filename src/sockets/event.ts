@@ -16,6 +16,7 @@ export const events = (io: TypedServer , socket: TypedSocket)=>{
             } else {
                 const opponentSocket = matchQueue.shift();
                 if(opponentSocket && opponentSocket.connected){
+                    if(opponentSocket.id === socket.id) throw new Error("Socket Already in Queue!")
                     const p1: Player = {gamerId: opponentSocket.data.gamerId, mark: "X"}
                     const p2: Player = {gamerId: socket.data.gamerId, mark: "O"};
                     const newGameId: string = await createNewGame(p1, p2);

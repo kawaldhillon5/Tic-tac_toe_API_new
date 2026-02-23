@@ -44,7 +44,6 @@ export const initializeSockets = (io: TypedServer) => {
 
     socket.on("disconnecting", ()=>{
       socket.rooms.forEach(room =>{
-        console.log("On Disconnecting, Socket.room: ", room);
         io.to(room).emit("opponent_status",{isActive: false});
       });
     });
