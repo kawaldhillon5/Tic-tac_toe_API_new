@@ -169,3 +169,15 @@ export const getSessionScore = (myId: string, opponentId: string): Promise<Score
     });
   });
 };
+
+export const deleteOldGames = async () : Promise<boolean> =>{
+    return new Promise((resolve, reject) =>{
+      db.run("DELETE FROM games WHERE created_at <= datetime('now', '-1 day')",(err)=>{
+      if(err){
+          console.error("DB Error deleteOldGames: ", err);
+          return reject(err);
+        }
+        resolve(true);
+      });
+    });
+};
