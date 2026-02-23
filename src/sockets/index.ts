@@ -23,6 +23,7 @@ export const initializeSockets = (io: TypedServer) => {
 
       //  Attach data to socket
       socket.data.gamerId = user.id;
+      socket.data.re_match_req = false;
       next();
 
     } catch (err) {

@@ -10,6 +10,7 @@ export interface ClientToServerEvents {
   make_move: (data: { gameId: string; row: number, col: number, player: string }) => void;
   game_history: (data: {gamerId:string}) => void;
   get_score : (data:{ opponentId: string}) =>void;
+  re_match_request: (data:{gameId: string, opponentId: string}) =>void;
 }
 
 // 2. Events the SERVER sends to the CLIENT
@@ -32,12 +33,14 @@ export interface ServerToClientEvents {
   timer_start : () => void;
   score_data : (data: Scores) => void
   opponent_status : (data:{isActive: boolean}) => void
+  re_match_req_sent: () => void;
   error: (data: { message: string }) => void;
 }
 
 // 3. Data we attach to the socket internally
 export interface SocketData {
   gamerId: string;
+  re_match_req: boolean;
 }
 
 export type TypedServer = Server<ClientToServerEvents, ServerToClientEvents, {}, SocketData>;
