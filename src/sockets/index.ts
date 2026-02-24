@@ -1,5 +1,5 @@
 import type { TypedServer, TypedSocket } from "../types/socket.js";
-import { findUserById, createNewUserInDB } from "../db/functions.js";
+import { GetUsername } from "../utils/idGenerator.js";
 import { events } from "./event.js";
 
 export const initializeSockets = (io: TypedServer) => {
@@ -9,20 +9,15 @@ export const initializeSockets = (io: TypedServer) => {
     const gamerId : string = socket.handshake.auth.gamerId;
     
     try {
-      let user = null;
 
-      // Try to find existing user if ID provided
-      if (gamerId) {
-        user = await findUserById(gamerId);
+      if (!gamerId) {
+        socket.data.gamerId = GetUsername();
+      } else {
+        socket.data.gamerId = gamerId;
       }
 
-      // 2. If no ID or user not found, create new one
-      if (!user) {
-        user = await createNewUserInDB();
-      }
+      
 
-      //  Attach data to socket
-      socket.data.gamerId = user.id;
       socket.data.re_match_req = false;
       next();
 
@@ -47,6 +42,7 @@ export const initializeSockets = (io: TypedServer) => {
       socket.rooms.forEach(room =>{
         io.to(room).emit("opponent_status",{isActive: false});
       });
+      
     });
 
     socket.on("disconnect", () => {

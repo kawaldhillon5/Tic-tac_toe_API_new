@@ -2,14 +2,7 @@ import db from './index.js';
 
 const initDb = () => {
   db.serialize(() => {
-    // 1. Users Table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        created_at INTEGER
-      )
-    `);
-
+    
     // 2. Games Table
     db.run(`
       CREATE TABLE IF NOT EXISTS games (
